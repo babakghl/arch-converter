@@ -1,5 +1,5 @@
-# Engineering Converter Dashboard
-
+# Engineering and Architectural Unit Converter Dashboard
+The best unit converter tool for architects, structural engineers, and anyone who works in the building industry.
 A web-based tool for:
 - Length (metric + architectural)
 - Area
