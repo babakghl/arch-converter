@@ -11,4 +11,4 @@ A web-based tool for:
 - Fraction precision control
 - Revit-style formatting
 
-## Live Demo
+By Babak Ghl. The Magnificent Architect!
