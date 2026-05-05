@@ -11,4 +11,7 @@ A web-based tool for:
 - Fraction precision control
 - Revit-style formatting
 
+## Instruction
+ SAve the index.html file and open it with any web browser!
+
 By Babak Ghl. The Magnificent Architect!
