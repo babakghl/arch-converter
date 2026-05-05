@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Engineering Dashboard</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: rgb(240,240,240);
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* GRID LAYOUT */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* CARD STYLE */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+h2 { margin-bottom: 15px; }
+
+.row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+label {
+    width: 180px;
+    font-weight: bold;
+}
+
+input, select {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* slider */
+.sliderBox {
+    margin-top: 30px;
+    text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOP -->
+<div class="grid">
+
+<!-- LENGTH -->
+<div class="card">
+<h2>Length</h2>
+
+<div class="row"><label>Meters</label><input id="m"></div>
+<div class="row"><label>Millimeters</label><input id="mm"></div>
+<div class="row"><label>Centimeters</label><input id="cm"></div>
+<div class="row"><label>Inches</label><input id="inch"></div>
+<div class="row"><label>Feet</label><input id="ft"></div>
+<div class="row"><label>Architectural</label><input id="archInput"></div>
+
+<div class="row">
+<label>Fraction</label>
+<select id="precision">
+<option value="1">1</option>
+<option value="2">1/2</option>
+<option value="4">1/4</option>
+<option value="8">1/8</option>
+<option value="16" selected>1/16</option>
+<option value="32">1/32</option>
+</select>
+</div>
+</div>
+
+<!-- AREA -->
+<div class="card">
+<h2>Area</h2>
+
+<div class="row"><label>m²</label><input id="sqm"></div>
+<div class="row"><label>ft²</label><input id="sqft"></div>
+<div class="row"><label>Acres</label><input id="acre"></div>
+<div class="row"><label>Hectares</label><input id="hectare"></div>
+</div>
+
+</div>
+
+<!-- BOTTOM -->
+<div class="grid" style="margin-top:20px;">
+
+<!-- VOLUME -->
+<div class="card">
+<h2>Volume</h2>
+
+<div class="row"><label>m³</label><input id="m3"></div>
+<div class="row"><label>ft³</label><input id="ft3"></div>
+<div class="row"><label>Liters</label><input id="liter"></div>
+</div>
+
+<!-- STRUCTURAL -->
+<div class="card">
+<h2>Structural</h2>
+
+<h3>Force</h3>
+<div class="row"><label>kN</label><input id="kn"></div>
+<div class="row"><label>N</label><input id="n"></div>
+
+<h3>Stress</h3>
+<div class="row"><label>MPa</label><input id="mpa"></div>
+<div class="row"><label>kPa</label><input id="kpa"></div>
+<div class="row"><label>psf</label><input id="psf"></div>
+</div>
+
+</div>
+
+<!-- SLIDER -->
+<div class="sliderBox">
+<label>Background Tone</label><br>
+<input type="range" min="20" max="255" value="240" id="bgSlider">
+</div>
+
+<script>
+let lock=false;
+
+// ---------- FRACTION ----------
+function frac(x,p){
+ let n=Math.round(x*p);
+ let g=(a,b)=>b?g(b,a%b):a;
+ let d=g(n,p);
+ n/=d; p/=d;
+ return n?`${n}/${p}`:"";
+}
+
+// ---------- ARCH ----------
+function toArch(ft){
+ let p=parseInt(precision.value);
+ let f=Math.floor(ft);
+ let i=(ft-f)*12;
+
+ i=Math.round(i*p)/p;
+
+ if(i>=12){f++; i=0;}
+
+ let w=Math.floor(i);
+ let fr=frac(i-w,p);
+
+ if(w===0 && !fr) return `${f}'`;
+ return `${f}' - ${w}${fr?" "+fr:""}"`;
+}
+
+// ---------- PARSE ----------
+function parseArch(v){
+ let f=0,i=0;
+ let fm=v.match(/(\d+)'/);
+ if(fm) f=parseFloat(fm[1]);
+
+ let im=v.match(/'\s*([\d\s\/]+)/);
+ if(im){
+  let p=im[1].trim();
+  if(p.includes(" ")){
+   let [w,fr]=p.split(" ");
+   i+=+w;
+   let [n,d]=fr.split("/");
+   i+=n/d;
+  } else if(p.includes("/")){
+   let [n,d]=p.split("/");
+   i+=n/d;
+  } else i+=+p;
+ }
+
+ return f*0.3048+i*0.0254;
+}
+
+// ---------- LENGTH ----------
+function L(m,src){
+ if(lock) return; lock=true;
+
+ if(src!="m") mEl.value=m.toFixed(4);
+ if(src!="mm") mm.value=(m*1000).toFixed(2);
+ if(src!="cm") cm.value=(m*100).toFixed(2);
+ if(src!="inch") inch.value=(m/0.0254).toFixed(4);
+ if(src!="ft") ft.value=(m/0.3048).toFixed(4);
+ if(src!="arch") archInput.value=toArch(m/0.3048);
+
+ lock=false;
+}
+
+let mEl=m;
+
+m.oninput=()=>L(+m.value,"m");
+mm.oninput=()=>L(mm.value/1000,"mm");
+cm.oninput=()=>L(cm.value/100,"cm");
+inch.oninput=()=>L(inch.value*0.0254,"inch");
+ft.oninput=()=>L(ft.value*0.3048,"ft");
+archInput.oninput=()=>L(parseArch(archInput.value),"arch");
+
+precision.onchange=()=>ft.value&&L(ft.value*0.3048,"ft");
+
+// ---------- AREA ----------
+function A(s,src){
+ if(lock) return; lock=true;
+
+ if(src!="sqm") sqm.value=s.toFixed(4);
+ if(src!="sqft") sqft.value=(s*10.7639).toFixed(4);
+ if(src!="acre") acre.value=(s/4046.856).toFixed(6);
+ if(src!="hectare") hectare.value=(s/10000).toFixed(6);
+
+ lock=false;
+}
+
+sqm.oninput=()=>A(+sqm.value,"sqm");
+sqft.oninput=()=>A(sqft.value/10.7639,"sqft");
+acre.oninput=()=>A(acre.value*4046.856,"acre");
+hectare.oninput=()=>A(hectare.value*10000,"hectare");
+
+// ---------- VOLUME ----------
+function V(v,src){
+ if(lock) return; lock=true;
+
+ if(src!="m3") m3.value=v.toFixed(4);
+ if(src!="ft3") ft3.value=(v*35.3147).toFixed(4);
+ if(src!="liter") liter.value=(v*1000).toFixed(2);
+
+ lock=false;
+}
+
+m3.oninput=()=>V(+m3.value,"m3");
+ft3.oninput=()=>V(ft3.value/35.3147,"ft3");
+liter.oninput=()=>V(liter.value/1000,"liter");
+
+// ---------- STRUCTURAL ----------
+function F(v,src){
+ if(lock) return; lock=true;
+
+ if(src!="kn") kn.value=v.toFixed(3);
+ if(src!="n") n.value=(v*1000).toFixed(0);
+
+ lock=false;
+}
+
+kn.oninput=()=>F(+kn.value,"kn");
+n.oninput=()=>F(n.value/1000,"n");
+
+function S(v,src){
+ if(lock) return; lock=true;
+
+ if(src!="mpa") mpa.value=v.toFixed(4);
+ if(src!="kpa") kpa.value=(v*1000).toFixed(2);
+ if(src!="psf") psf.value=(v*20885.4).toFixed(2);
+
+ lock=false;
+}
+
+mpa.oninput=()=>S(+mpa.value,"mpa");
+kpa.oninput=()=>S(kpa.value/1000,"kpa");
+psf.oninput=()=>S(psf.value/20885.4,"psf");
+
+// ---------- BACKGROUND SLIDER ----------
+bgSlider.oninput = () => {
+    let v = bgSlider.value;
+    document.body.style.background = `rgb(${v},${v},${v})`;
+};
+</script>
+
+</body>
+</html>
